@@ -15,6 +15,24 @@ public class ChessMatch {
 		initialSetup();
 	}
 	
+	public ChessPiece[][] getPieces() {
+		ChessPiece[][] mat = new ChessPiece[board.getRows()][board.getColumns()];
+		
+		for(int i = 0; i < board.getRows(); i++) {
+			for(int j = 0; j < board.getColumns(); j++) {
+				mat[i][j] = (ChessPiece) board.piece(i, j);
+			}
+		}
+		
+		return mat;
+	}
+	
+	public boolean[][] possibleMoves(ChessPosition sourcePosition) {
+		Position position = sourcePosition.toPosition();
+		validateSourcePosition(position);
+		return board.piece(position).possibleMoves();
+	}
+	
 	public ChessPiece performChessMove(ChessPosition sourcePosition, ChessPosition targetPosition) {
 		Position source = sourcePosition.toPosition();
 		Position target = targetPosition.toPosition();
@@ -28,7 +46,7 @@ public class ChessMatch {
 	
 	private Piece makeMove(Position source, Position target) {
 		Piece p = board.removePiece(source);
-		Piece capturedPiece = board.removePiece(source);
+		Piece capturedPiece = board.removePiece(target);
 		board.placePiece(p, target);
 		return capturedPiece;
 	}
@@ -46,18 +64,6 @@ public class ChessMatch {
 		if(!board.piece(source).possibleMove(target)){
 			throw new ChessException("The chose piece can't move to target position");
 		}
-	}
-	
-	public ChessPiece[][] getPieces() {
-		ChessPiece[][] mat = new ChessPiece[board.getRows()][board.getColumns()];
-		
-		for(int i = 0; i < board.getRows(); i++) {
-			for(int j = 0; j < board.getColumns(); j++) {
-				mat[i][j] = (ChessPiece) board.piece(i, j);
-			}
-		}
-		
-		return mat;
 	}
 	
 	private void placeNewPiece(char column, int row, ChessPiece piece) {
