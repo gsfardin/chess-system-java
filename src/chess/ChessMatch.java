@@ -16,6 +16,7 @@ public class ChessMatch {
 	private int turn;
 	private Color currentPlayer;
 	private boolean check;
+	private boolean checkMate;
 	
 	private List<Piece> piecesOnTheBoard = new ArrayList<>();
 	private List<Piece> capturedPieces = new ArrayList<>();
@@ -37,6 +38,10 @@ public class ChessMatch {
 	
 	public boolean getCkeck() {
 		return check;
+	}
+	
+	public boolean getCkeckMate() {
+		return checkMate;
 	}
 	
 	public ChessPiece[][] getPieces() {
@@ -75,7 +80,14 @@ public class ChessMatch {
 		// VERIFICA SE O OPONENTE FICOU EM CHEQUE APÓS O MOVIMENTO
 		check = (testCkeck(opponent(currentPlayer))) ? true : false;
 		
-		nextTurn();
+		// VERIFICA SE OCORREU CHECKMATE, SE SIM ENCERRA O JOGO.
+		if(testCkeckMate(opponent(currentPlayer))) {
+			checkMate = true;
+		}
+		else {
+			nextTurn();
+		}
+		
 		return (ChessPiece) capturedPiece;
 	}
 	
@@ -157,24 +169,51 @@ public class ChessMatch {
 		return false;
 	}
 	
+	private boolean testCkeckMate(Color color) {
+		// TESTA SE O REI DA JOGADA ESTÁ EM CHECK, CASO NÃO ESTEJA RETORNA FALSO CHECKMATE
+		if(!testCkeck(color)) {
+			return false;
+		}
+		// PEGA A LISTA DE PEÇAS PRESENTES NO TABULEIRO
+		List<Piece> list = piecesOnTheBoard.stream().filter(x -> ((ChessPiece)x).getColor() == color).collect(Collectors.toList());
+		for(Piece p : list) {
+			// CARREGA A MATRIZ DE MOVIMENTOS POSSÍVEIS PARA A PEÇA CORRENTE
+			boolean[][] mat = p.possibleMoves();
+			// VERIFICA TODA A MATRIZ EM BUSCA DE ALGUM MOVIMENTO CAPAZ DE TIRAR O REI DO CHECK
+			for(int i = 0; i < board.getRows(); i++) {
+				for(int j = 0; j < board.getColumns(); j++) {
+					// VERIFICA SE A CÉLULA DA MATRIZ É UM MOVIMENTO POSSÍVEL DA PEÇA P
+					if(mat[i][j]) {
+						// PEGA A POSSIÇÃO DE ORIGEM DA PEÇA P (UPCASTING TO CHESSPOSITION) E INFORMA A POSIÇÃO DE DESTINO CONFORME MATRIZ
+						Position source = ((ChessPiece)p).getChessPosition().toPosition();
+						Position target = new Position(i, j);
+						// EXECUTA O MOVIMENTO POSSÍVEL, TESTA SE SAIU DO CHECK E ESTORNA O MOVIMENTO (SIMULAÇÃO)
+						Piece capturedPiece = makeMove(source, target);
+						boolean testCheck = testCkeck(color);
+						undoMove(source, target, capturedPiece);
+						// RETORNA QUE NÃO ESTÁ EM CHECKMATE CASO O TESTCHECK SEJA NEGATIVO PARA PELO MENOS UM CASO
+						if(!testCheck) {
+							return false;
+						}
+					}
+				}
+			}
+		}
+		// CASO A LISTA SEJA TOTALMENTE PERCORRIDA E NENHUM MOVIMENTO CAPAZ DE TIRAR O CHECK TENHA SIDO ENCONTRADO ENTÃO CHECKMAT
+		return true;
+	}
+	
 	private void placeNewPiece(char column, int row, ChessPiece piece) {
 		board.placePiece(piece, new ChessPosition(column, row).toPosition());
 		piecesOnTheBoard.add(piece);
 	}
 	
 	private void initialSetup() {
-		placeNewPiece('c', 1, new Rook(board, Color.WHITE));
-        placeNewPiece('c', 2, new Rook(board, Color.WHITE));
-        placeNewPiece('d', 2, new Rook(board, Color.WHITE));
-        placeNewPiece('e', 2, new Rook(board, Color.WHITE));
-        placeNewPiece('e', 1, new Rook(board, Color.WHITE));
-        placeNewPiece('d', 1, new King(board, Color.WHITE));
+		placeNewPiece('h', 7, new Rook(board, Color.WHITE));
+        placeNewPiece('d', 1, new Rook(board, Color.WHITE));
+        placeNewPiece('e', 1, new King(board, Color.WHITE));
 
-        placeNewPiece('c', 7, new Rook(board, Color.BLACK));
-        placeNewPiece('c', 8, new Rook(board, Color.BLACK));
-        placeNewPiece('d', 7, new Rook(board, Color.BLACK));
-        placeNewPiece('e', 7, new Rook(board, Color.BLACK));
-        placeNewPiece('e', 8, new Rook(board, Color.BLACK));
-        placeNewPiece('d', 8, new King(board, Color.BLACK));
+        placeNewPiece('b', 8, new Rook(board, Color.BLACK));
+        placeNewPiece('a', 8, new King(board, Color.BLACK));
 	}
 }
