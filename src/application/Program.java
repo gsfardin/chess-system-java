@@ -3,6 +3,8 @@ package application;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+import javax.swing.JTable.PrintMode;
+
 import chess.ChessException;
 import chess.ChessMatch;
 import chess.ChessPiece;
@@ -18,16 +20,16 @@ public class Program {
 		while(true) {
 			try {
 				UI.clearScreen();
-				UI.printBoard(chessMatch.getPieces());
+				UI.printMatch(chessMatch);
 				System.out.println();
-				System.out.println("Source: ");
+				System.out.print("Source: ");
 				ChessPosition source = UI.readChessPosition(sc);
 				
 				boolean[][] possibleMoves = chessMatch.possibleMoves(source);
 				UI.clearScreen();
 				UI.printBoard(chessMatch.getPieces(), possibleMoves);
 				System.out.println();
-				System.out.println("Target: ");
+				System.out.print("Target: ");
 				ChessPosition target = UI.readChessPosition(sc);
 				
 				ChessPiece capituredPiece = chessMatch.performChessMove(source, target);
